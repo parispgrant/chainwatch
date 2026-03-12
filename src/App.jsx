@@ -477,7 +477,7 @@ function BatchPanel({apiKey,T}){
       const a=addrs[i];let txList=[],balance="0",txCount=0;
       try{
         if(apiKey.trim()){
-          const base="https://api.etherscan.io/api";
+          const base="https://api.etherscan.io/v2/api?chainid=1&";
           const[txR,balR]=await Promise.all([fetch(`${base}?module=account&action=txlist&address=${a}&startblock=0&endblock=99999999&page=1&offset=200&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),fetch(`${base}?module=account&action=balance&address=${a}&tag=latest&apikey=${apiKey.trim()}`).then(r=>r.json())]);
           txList=txR.result||[];balance=balR.result||"0";txCount=txList.length;await sleep(220);
         }else{const d=makeDemoData(a);txList=d.txList;balance=d.balance;txCount=d.txCount;}
@@ -555,7 +555,7 @@ export default function App(){
       setEns(resolvedEns);
       let txList=[],balance="0",txCount=0,tokenTxs=[],nftTxs=[];
       if(apiKey.trim()){
-        const base="https://api.etherscan.io/api";
+        const base="https://api.etherscan.io/v2/api?chainid=1&";
         const[txR,balR,tokR,nftR]=await Promise.all([fetch(`${base}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=500&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),fetch(`${base}?module=account&action=balance&address=${address}&tag=latest&apikey=${apiKey.trim()}`).then(r=>r.json()),fetch(`${base}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=1&offset=200&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),fetch(`${base}?module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&page=1&offset=100&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json())]);
         if(txR.status==="0"&&txR.message!=="No transactions found")throw new Error(txR.result||"Etherscan error — check your API key");
         txList=txR.result||[];balance=balR.result||"0";txCount=txList.length;tokenTxs=tokR.result||[];nftTxs=nftR.result||[];
