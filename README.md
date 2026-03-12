@@ -1,16 +1,32 @@
-# React + Vite
+# ChainWatch ⬡
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Ethereum wallet risk intelligence platform** — free, open-source alternative to enterprise AML tools.
 
-Currently, two official plugins are available:
+🔗 **[Live Demo →](https://chainwatch.vercel.app)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
+- Composite risk scoring across 8 weighted factors
+- Mixer / Tornado Cash interaction detection
+- OFAC sanctions exposure screening
+- NFT wash trading detection
+- ERC-20 stablecoin volume analysis
+- ENS name resolution
+- AI-generated AML assessment (Claude-powered)
+- Force-directed transaction network graph
+- Batch analysis mode (up to 50 addresses)
+- No API key required to explore (demo mode)
 
-## React Compiler
+## Tech Stack
+React · Vite · D3 · Recharts · Etherscan API · Anthropic Claude
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Setup
+```bash
+npm install
+echo "VITE_ETHERSCAN_KEY=your_key" > .env
+npm run dev
+```
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Roadmap
+- [ ] Multi-chain support (Polygon, Arbitrum, BSC)
+- [ ] Real-time OFAC API integration
+- [ ] Wallet clustering / entity labeling
