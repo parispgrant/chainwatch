@@ -482,7 +482,7 @@ function BatchPanel({apiKey,T}){
             fetch(`${base}?chainid=1&module=account&action=txlist&address=${a}&startblock=0&endblock=99999999&page=1&offset=200&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),
             fetch(`${base}?chainid=1&module=account&action=balance&address=${a}&tag=latest&apikey=${apiKey.trim()}`).then(r=>r.json()),
           ]);
-          txList=txR.result||[];balance=balR.result||"0";txCount=txList.length;await sleep(220);
+          txList=Array.isArray(txR.result)?txR.result:[];balance=balR.result||"0";txCount=txList.length;await sleep(220);
         }else{const d=makeDemoData(a);txList=d.txList;balance=d.balance;txCount=d.txCount;}
         const risk=computeRisk(txList,[],[],a);
         setResults(p=>[...p,{address:a,score:risk.score,label:rLabel(risk.score),flags:risk.flags,balance:(parseFloat(balance)/1e18).toFixed(3),txCount,ageInDays:Math.floor(risk.ageInDays)}]);
@@ -566,7 +566,7 @@ export default function App(){
           fetch(`${base}?chainid=1&module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&page=1&offset=100&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),
         ]);
         if(txR.status==="0"&&txR.message!=="No transactions found")throw new Error(txR.result||"Etherscan error — check your API key");
-        txList=txR.result||[];balance=balR.result||"0";txCount=txList.length;tokenTxs=tokR.result||[];nftTxs=nftR.result||[];
+        txList=Array.isArray(txR.result)?txR.result:[];balance=balR.result||"0";txCount=txList.length;tokenTxs=Array.isArray(tokR.result)?tokR.result:[];nftTxs=Array.isArray(nftR.result)?nftR.result:[];
         setIsDemo(false);
       }else{const d=makeDemoData(address);txList=d.txList;balance=d.balance;txCount=d.txCount;tokenTxs=d.tokenTxs;nftTxs=d.nftTxs;setIsDemo(true);}
       const risk=computeRisk(txList,tokenTxs,nftTxs,address);
