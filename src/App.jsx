@@ -56,7 +56,7 @@ const EXAMPLES = [
 const DARK={bg:"#050a12",s1:"#0a1220",s2:"#0e1828",s3:"#142030",border:"#1a2e4a",borderH:"#2a4878",text:"#c4d8f0",text2:"#546e8a",text3:"#1e3248",cyan:"#38bdf8",green:"#34d399",amber:"#fbbf24",red:"#f87171",inputBg:"#0a1220",headerBg:"#050a12f2",gridLine:"#1a2e4a28",scrollThumb:"#1a2e4a"};
 const LIGHT={bg:"#f0f4f8",s1:"#ffffff",s2:"#f8fafc",s3:"#eef2f7",border:"#cbd5e1",borderH:"#94a3b8",text:"#0f172a",text2:"#475569",text3:"#94a3b8",cyan:"#0284c7",green:"#059669",amber:"#d97706",red:"#dc2626",inputBg:"#ffffff",headerBg:"#f0f4f8f2",gridLine:"#cbd5e128",scrollThumb:"#cbd5e1"};
 
-const rPal=(s,T)=>s<=3?{c:T.green,bg:`${T.green}18`,br:`${T.green}60`,glow:`${T.green}25`,gl2:`${T.green}10`}:s<=6?{c:T.amber,bg:`${T.amber}18`,br:`${T.amber}60`,glow:`${T.amber}20`,gl2:`${T.amber}10`}:{c:T.red,bg:`${T.red}18`,br:`${T.red}60`,glow:`${T.red}25`,gl2:`${T.red}10`};
+const rPal=(s,T)=>s<=3?{c:T.green,bg:`${T.green}18`,br:`${T.green}60`}:s<=6?{c:T.amber,bg:`${T.amber}18`,br:`${T.amber}60`}:{c:T.red,bg:`${T.red}18`,br:`${T.red}60`};
 const rLabel=s=>s<=3?"LOW":s<=6?"MEDIUM":"HIGH";
 const pctile=s=>s<=2?4:s<=3?11:s<=4?27:s<=5?47:s<=6?63:s<=7?78:s<=8?88:s<=9?95:99;
 const knownName=a=>{const k=a?.toLowerCase();return HIGH_RISK[k]?.name||BRIDGES[k]||DEFI[k]||null;};
@@ -185,7 +185,7 @@ function tagInfo(tag,T){
 
 function TiltCard({children,style,intensity=9,isDark=true}){
   const ref=useRef(null),fr=useRef(null);
-  const [s,setS]=useState({rx:0,ry:0,sx:50,sy:50,on:false});
+  const[s,setS]=useState({rx:0,ry:0,sx:50,sy:50,on:false});
   const onMove=useCallback(e=>{
     if(window.innerWidth<=640)return;
     if(fr.current)cancelAnimationFrame(fr.current);
@@ -477,8 +477,11 @@ function BatchPanel({apiKey,T}){
       const a=addrs[i];let txList=[],balance="0",txCount=0;
       try{
         if(apiKey.trim()){
-          const base="https://api.etherscan.io/v2/api?chainid=1&";
-          const[txR,balR]=await Promise.all([fetch(`${base}?module=account&action=txlist&address=${a}&startblock=0&endblock=99999999&page=1&offset=200&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),fetch(`${base}?module=account&action=balance&address=${a}&tag=latest&apikey=${apiKey.trim()}`).then(r=>r.json())]);
+          const base="https://api.etherscan.io/v2/api";
+          const[txR,balR]=await Promise.all([
+            fetch(`${base}?chainid=1&module=account&action=txlist&address=${a}&startblock=0&endblock=99999999&page=1&offset=200&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),
+            fetch(`${base}?chainid=1&module=account&action=balance&address=${a}&tag=latest&apikey=${apiKey.trim()}`).then(r=>r.json()),
+          ]);
           txList=txR.result||[];balance=balR.result||"0";txCount=txList.length;await sleep(220);
         }else{const d=makeDemoData(a);txList=d.txList;balance=d.balance;txCount=d.txCount;}
         const risk=computeRisk(txList,[],[],a);
@@ -496,7 +499,7 @@ function BatchPanel({apiKey,T}){
         UPLOAD CSV <input type="file" accept=".csv,.txt" onChange={handleFile} style={{display:"none"}}/>
       </label>
       <textarea value={raw} onChange={e=>setRaw(e.target.value)} placeholder={"0x742d35Cc6634C0532925a3b844Bc454e4438f44e\n0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045\n..."}
-        style={{width:"100%",background:T.s2,border:`1px solid ${T.border}`,borderRadius:6,padding:"12px",color:T.text,fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",resize:"vertical",minHeight:110,marginBottom:10}}/>
+        style={{width:"100%",background:T.s2,border:`1px solid ${T.border}`,borderRadius:6,padding:"12px",color:T.text,fontSize:11,fontFamily:"'IBM Plex Mono',monospace",outline:"none",resize:"vertical",minHeight:110,marginBottom:10,boxSizing:"border-box"}}/>
       <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center",flexWrap:"wrap"}}>
         <button onClick={runBatch} disabled={running||!raw.trim()} style={{padding:"10px 20px",background:running?T.s2:`${T.cyan}14`,border:`1px solid ${running?T.border:T.cyan+"55"}`,borderRadius:6,color:running?T.text3:T.cyan,fontSize:"11px",cursor:running?"not-allowed":"pointer",letterSpacing:"2px",fontFamily:"'IBM Plex Mono',monospace"}}>
           {running?`ANALYZING ${progress}/${total}…`:`ANALYZE ${parseAddresses(raw).length} ADDRESSES`}
@@ -555,8 +558,13 @@ export default function App(){
       setEns(resolvedEns);
       let txList=[],balance="0",txCount=0,tokenTxs=[],nftTxs=[];
       if(apiKey.trim()){
-        const base="https://api.etherscan.io/v2/api?chainid=1&";
-        const[txR,balR,tokR,nftR]=await Promise.all([fetch(`${base}?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=500&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),fetch(`${base}?module=account&action=balance&address=${address}&tag=latest&apikey=${apiKey.trim()}`).then(r=>r.json()),fetch(`${base}?module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=1&offset=200&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),fetch(`${base}?module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&page=1&offset=100&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json())]);
+        const base="https://api.etherscan.io/v2/api";
+        const[txR,balR,tokR,nftR]=await Promise.all([
+          fetch(`${base}?chainid=1&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=500&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),
+          fetch(`${base}?chainid=1&module=account&action=balance&address=${address}&tag=latest&apikey=${apiKey.trim()}`).then(r=>r.json()),
+          fetch(`${base}?chainid=1&module=account&action=tokentx&address=${address}&startblock=0&endblock=99999999&page=1&offset=200&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),
+          fetch(`${base}?chainid=1&module=account&action=tokennfttx&address=${address}&startblock=0&endblock=99999999&page=1&offset=100&sort=asc&apikey=${apiKey.trim()}`).then(r=>r.json()),
+        ]);
         if(txR.status==="0"&&txR.message!=="No transactions found")throw new Error(txR.result||"Etherscan error — check your API key");
         txList=txR.result||[];balance=balR.result||"0";txCount=txList.length;tokenTxs=tokR.result||[];nftTxs=nftR.result||[];
         setIsDemo(false);
@@ -587,7 +595,7 @@ export default function App(){
             <span style={{fontSize:13,fontWeight:700,letterSpacing:"3px",color:T.text}}>CHAINWATCH</span>
           </div>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            <button onClick={()=>setIsDark(d=>!d)} style={{padding:"5px 10px",background:T.s2,border:`1px solid ${T.border}`,borderRadius:20,color:T.text2,fontSize:"13px",cursor:"pointer",lineHeight:1,minWidth:34}}>{isDark?"☀":"🌙"}</button>
+            <button onClick={()=>setIsDark(d=>!d)} style={{padding:"5px 10px",background:T.s2,border:`1px solid ${T.border}`,borderRadius:20,color:T.text2,fontSize:"13px",cursor:"pointer",lineHeight:1,minWidth:34,fontFamily:"sans-serif"}}>{isDark?"☀":"🌙"}</button>
             <button onClick={()=>setShowMethod(true)} style={{padding:"5px 10px",background:T.s2,border:`1px solid ${T.border}`,borderRadius:20,color:T.text2,fontSize:"9px",cursor:"pointer",letterSpacing:1,fontFamily:"'IBM Plex Mono',monospace"}}>?</button>
             <button onClick={()=>setShowKey(!showKey)} style={{padding:"5px 10px",background:apiKey?`${T.green}15`:T.s2,border:`1px solid ${apiKey?T.green+"50":T.border}`,borderRadius:20,color:apiKey?T.green:T.text2,fontSize:"9px",cursor:"pointer",letterSpacing:1,fontFamily:"'IBM Plex Mono',monospace"}}>{apiKey?"✓ LIVE":"API KEY"}</button>
             {result&&<button onClick={copyShare} style={{padding:"5px 10px",background:copiedShare?`${T.cyan}15`:T.s2,border:`1px solid ${copiedShare?T.cyan+"44":T.border}`,borderRadius:20,color:copiedShare?T.cyan:T.text2,fontSize:"9px",cursor:"pointer",letterSpacing:1,fontFamily:"'IBM Plex Mono',monospace"}}>{copiedShare?"✓":"SHARE"}</button>}
@@ -610,12 +618,10 @@ export default function App(){
 
       <div style={{maxWidth:1340,margin:"0 auto",padding:"20px clamp(12px,4vw,32px)",position:"relative",zIndex:1,width:"100%",boxSizing:"border-box"}}>
 
-        {/* Mode toggle */}
         <div style={{display:"flex",gap:2,background:T.s1,border:`1px solid ${T.border}`,borderRadius:6,padding:3,marginBottom:16,width:"100%"}}>
           {MODES.map(m=><button key={m} onClick={()=>setMode(m)} style={{flex:1,padding:"9px 8px",background:mode===m?T.s3:"transparent",border:`1px solid ${mode===m?T.borderH:"transparent"}`,borderRadius:4,color:mode===m?T.text:T.text3,fontSize:"11px",cursor:"pointer",letterSpacing:"1px",fontFamily:"'IBM Plex Mono',monospace",transition:"all 0.2s"}}>{m} ANALYSIS</button>)}
         </div>
 
-        {/* Watchlist */}
         {watchlist.length>0&&(
           <div style={{marginBottom:16}}>
             <div style={{fontSize:"9px",color:T.text3,letterSpacing:"2px",marginBottom:6,fontFamily:"'IBM Plex Mono',monospace"}}>WATCHLIST</div>
@@ -638,12 +644,11 @@ export default function App(){
           </div>
         ):(
           <>
-            {/* Search */}
             <div style={{marginBottom:20}}>
               <div style={{fontSize:"10px",color:T.text3,letterSpacing:"2px",marginBottom:8,fontFamily:"'IBM Plex Mono',monospace"}}>ETHEREUM ADDRESS OR ENS NAME</div>
               <div style={{display:"flex",flexDirection:"column",gap:8,width:"100%"}}>
                 <div style={{position:"relative",width:"100%"}}>
-                  <span style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",color:T.cyan,fontSize:13,fontFamily:"'IBM Plex Mono',monospace",pointerEvents:"none"}}>$</span>
+                  <span style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",color:T.cyan,fontSize:13,pointerEvents:"none"}}>$</span>
                   <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&runAnalysis()}
                     placeholder="0x… or vitalik.eth"
                     style={{width:"100%",background:T.inputBg,border:`1px solid ${T.border}`,borderRadius:8,padding:"15px 14px 15px 30px",color:T.text,fontSize:15,fontFamily:"'IBM Plex Mono',monospace",outline:"none",WebkitAppearance:"none",boxSizing:"border-box"}}
@@ -663,7 +668,6 @@ export default function App(){
 
             {result&&!loading&&(
               <div style={{animation:"cw-fadeIn 0.4s ease"}}>
-                {/* Verdict */}
                 <div style={{background:T.s1,border:`1px solid ${R.br}`,borderRadius:10,padding:"18px",marginBottom:10,width:"100%",boxSizing:"border-box"}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12,marginBottom:12}}>
                     <div style={{minWidth:0,flex:1}}>
@@ -692,7 +696,6 @@ export default function App(){
 
                 <AIAnalyst result={result} T={T}/>
 
-                {/* Stats */}
                 <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8,marginBottom:10}}>
                   {[{l:"WALLET AGE",v:`${Math.floor(result.ageInDays/365)}y ${Math.floor((result.ageInDays%365)/30)}mo`},{l:"TRANSACTIONS",v:fmt(result.txCount)},{l:"PROTOCOLS",v:fmt(result.uniqueContracts)},{l:"ETH BALANCE",v:result.balance},{l:"NFT WASH",v:String(result.washCount||0),alert:result.washCount>0}].map(c=>(
                     <div key={c.l} style={{background:T.s1,border:`1px solid ${T.border}`,borderRadius:6,padding:"12px 14px",boxSizing:"border-box"}}>
@@ -704,9 +707,8 @@ export default function App(){
 
                 <CategoryBar txList={result.txList} flagged={result.flagged} T={T}/>
 
-                {/* Tabs */}
                 <div style={{display:"flex",gap:2,background:T.s1,border:`1px solid ${T.border}`,borderRadius:6,padding:3,marginBottom:10,width:"100%"}}>
-                  {TABS.map(t=><button key={t} onClick={()=>setTab(t)} style={{flex:1,padding:"8px 2px",background:tab===t?R.bg:"transparent",border:`1px solid ${tab===t?R.br:"transparent"}`,borderRadius:4,color:tab===t?R.c:T.text3,fontSize:"9px",cursor:"pointer",letterSpacing:"0px",fontFamily:"'IBM Plex Mono',monospace",transition:"all 0.2s"}}>{t}</button>)}
+                  {TABS.map(t=><button key={t} onClick={()=>setTab(t)} style={{flex:1,padding:"8px 2px",background:tab===t?R.bg:"transparent",border:`1px solid ${tab===t?R.br:"transparent"}`,borderRadius:4,color:tab===t?R.c:T.text3,fontSize:"9px",cursor:"pointer",fontFamily:"'IBM Plex Mono',monospace",transition:"all 0.2s"}}>{t}</button>)}
                 </div>
 
                 {tab==="OVERVIEW"&&(
